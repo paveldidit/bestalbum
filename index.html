@@ -368,12 +368,24 @@ async function dbClearState(){
 function parseCSV(text){
   const lines = text.split(/\r\n|\n|\r/).filter(l=>l.trim().length>0);
   if(lines.length<2) throw new Error('CSV braucht eine Kopfzeile plus mindestens eine Datenzeile.');
+  const countOutsideQuotes = (line, ch)=>{
+    let count=0, inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){ if(inQ && line[i+1]==='"'){i++;} else inQ=!inQ; }
+      else if(c===ch && !inQ){ count++; }
+    }
+    return count;
+  };
+  const semis = countOutsideQuotes(lines[0], ';');
+  const commas = countOutsideQuotes(lines[0], ',');
+  const delimiter = semis > commas ? ';' : ',';
   const splitLine = (line)=>{
     const out=[]; let cur=''; let inQ=false;
     for(let i=0;i<line.length;i++){
       const c=line[i];
       if(c==='"'){ if(inQ && line[i+1]==='"'){cur+='"';i++;} else inQ=!inQ; }
-      else if(c===',' && !inQ){ out.push(cur); cur=''; }
+      else if(c===delimiter && !inQ){ out.push(cur); cur=''; }
       else cur+=c;
     }
     out.push(cur);
