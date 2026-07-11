@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#14110D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Album-Duell — finde dein Lieblingsalbum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14110D;
+    --surface:#1E1A14;
+    --surface-2:#262019;
+    --border:#37312A;
+    --text:#EDE6D6;
+    --muted:#94897A;
+    --accent:#C9A227;
+    --accent-dim:#7A6420;
+    --teal:#2F6E68;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Mono',monospace;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .wrap{
+    width:100%;
+    max-width:920px;
+    padding:48px 24px 80px;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  .lede{color:var(--muted);font-size:14px;line-height:1.6;margin:10px 0 0;max-width:56ch;}
+
+  /* --- Vinyl signature element --- */
+  .vinyl{
+    width:120px;height:120px;flex:none;
+  }
+  .vinyl-spin{animation:spin 3.2s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* --- Upload screen --- */
+  .dropzone{
+    margin-top:36px;
+    border:1.5px dashed var(--border);
+    border-radius:4px;
+    padding:48px 24px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color:var(--accent);
+    background:var(--surface);
+  }
+  .dropzone p{margin:6px 0;color:var(--muted);font-size:13px;}
+  .dropzone .dz-title{font-family:'Fraunces',serif;font-size:20px;color:var(--text);margin-bottom:4px;}
+  input[type=file]{display:none;}
+  .format-hint{
+    margin-top:24px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:14px 16px;
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.7;
+  }
+  .format-hint code{color:var(--accent);}
+  .progress-import{margin-top:18px;}
+  .progress-label{
+    font-size:12px;color:var(--accent);cursor:pointer;
+    text-decoration:underline;
+  }
+
+  /* --- Duel screen --- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:36px;
+  }
+  .counter{font-size:12px;color:var(--muted);letter-spacing:.05em;}
+  .counter b{color:var(--text);font-weight:500;}
+  .linkbtn{
+    background:none;border:none;color:var(--accent);
+    font-family:'IBM Plex Mono',monospace;font-size:12px;
+    cursor:pointer;text-decoration:underline;padding:0;
+  }
+  .linkbtn:disabled{color:var(--muted);text-decoration:none;cursor:default;}
+
+  .duel-row{
+    display:flex;align-items:center;justify-content:center;gap:24px;
+  }
+  .card{
+    flex:1;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:36px 24px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .12s, transform .12s, background .12s;
+    min-height:190px;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .card:hover{border-color:var(--accent);background:var(--surface-2);transform:translateY(-2px);}
+  .card:active{transform:translateY(0px) scale(.99);}
+  .card .cover{
+    width:150px;height:150px;object-fit:cover;
+    border-radius:3px;margin:0 auto 18px;display:block;
+    border:1px solid var(--border);
+  }
+  .card .album{font-family:'Fraunces',serif;font-size:23px;font-weight:600;line-height:1.25;}
+  .card .artist{color:var(--muted);font-size:13px;margin-top:10px;}
+  .card .year{color:var(--accent-dim);font-size:12px;margin-top:4px;}
+  .vs{
+    font-family:'Fraunces',serif;font-style:italic;color:var(--muted);
+    font-size:15px;flex:none;width:36px;text-align:center;
+  }
+  .hint-row{
+    display:flex;justify-content:center;gap:36px;margin-top:20px;
+    font-size:11px;color:var(--muted);
+  }
+  .actions-row{
+    display:flex;justify-content:center;gap:24px;margin-top:36px;
+  }
+
+  /* --- Ranking screen --- */
+  .rank-row{
+    display:flex;align-items:baseline;gap:16px;
+    padding:14px 4px;
+    border-bottom:1px solid var(--border);
+  }
+  .rank-row:first-child{border-top:1px solid var(--border);}
+  .rank-num{
+    font-family:'Fraunces',serif;font-size:26px;font-weight:600;
+    color:var(--accent);width:44px;flex:none;text-align:right;
+  }
+  .rank-meta{flex:1;display:flex;align-items:center;gap:12px;}
+  .rank-cover{width:40px;height:40px;object-fit:cover;border-radius:3px;border:1px solid var(--border);flex:none;}
+  .rank-meta .album{font-family:'Fraunces',serif;font-size:17px;font-weight:500;}
+  .rank-meta .artist{color:var(--muted);font-size:12px;margin-top:2px;}
+  .rank-score{font-size:12px;color:var(--muted);flex:none;width:70px;text-align:right;}
+
+  .btn{
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    padding:10px 18px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:border-color .12s, background .12s;
+  }
+  .btn:hover{border-color:var(--accent);background:var(--surface-2);}
+  .btn.primary{border-color:var(--accent);color:var(--accent);}
+  .btn:disabled{opacity:.4;cursor:default;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+  .foot-actions{display:flex;gap:16px;margin-top:32px;justify-content:center;flex-wrap:wrap;}
+
+  @media(max-width:600px){
+    .duel-row{flex-direction:column;}
+    .vs{width:auto;padding:4px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SCREEN 0: RESUME (shown if local DB already has a saved state) -->
+  <section class="screen" id="screen-resume">
+    <div style="display:flex;align-items:center;gap:22px;">
+      <svg class="vinyl" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="36" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="26" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="16" fill="#C9A227"/>
+        <circle cx="60" cy="60" r="3" fill="#14110D"/>
+      </svg>
+      <div>
+        <p class="eyebrow">Willkommen zurück</p>
+        <h1 style="font-size:30px;">Weitermachen?</h1>
+        <p class="lede" id="resumeSummary">Gespeicherter Stand gefunden.</p>
+      </div>
+    </div>
+    <div class="foot-actions" style="justify-content:flex-start;margin-top:32px;">
+      <button class="btn primary" id="resumeDuelBtn">Weiter duellieren</button>
+      <button class="btn" id="resumeRankingBtn">Ranking ansehen</button>
+      <button class="btn" id="resumeAddBtn">Neue Alben per CSV hinzufügen</button>
+      <button class="btn" id="resumeResetBtn">Alles löschen &amp; neu starten</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 1: UPLOAD -->
+  <section class="screen active" id="screen-upload">
+    <div style="display:flex;align-items:center;gap:22px;">
+      <svg class="vinyl" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="36" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="26" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="16" fill="#C9A227"/>
+        <circle cx="60" cy="60" r="3" fill="#14110D"/>
+      </svg>
+      <div>
+        <p class="eyebrow">Album-Duell</p>
+        <h1 style="font-size:30px;">Wer gewinnt?</h1>
+        <p class="lede">Lade deine Album-Liste als CSV hoch. Jede Runde treten zwei zufällige Alben gegeneinander an — du entscheidest, am Ende steht dein Ranking fest.</p>
+      </div>
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <p class="dz-title">CSV hierher ziehen</p>
+      <p>oder klicken zum Auswählen</p>
+      <input type="file" id="fileInput" accept=".csv">
+    </div>
+
+    <div class="format-hint">
+      Erwartete Spalten (Reihenfolge egal, Groß-/Kleinschreibung egal):<br>
+      <code>album</code>, <code>artist</code> (oder <code>interpret</code>), <code>year</code> (oder <code>jahr</code>), optional <code>cover</code> (Bild-URL)<br>
+      Beispiel: <code>Album,Artist,Year,Cover&#10;OK Computer,Radiohead,1997,https://.../cover.jpg</code>
+    </div>
+    <p id="uploadError" style="color:#E24B4A;font-size:12px;margin-top:12px;"></p>
+
+    <div class="progress-import">
+      <label class="progress-label" for="progressInput">
+        <span id="progressLabelText">+ Backup-Datei einbinden (optional, .json — normalerweise nicht nötig)</span>
+      </label>
+      <input type="file" id="progressInput" accept=".json">
+    </div>
+  </section>
+
+  <!-- SCREEN 2: DUEL -->
+  <section class="screen" id="screen-duel">
+    <div class="topbar">
+      <span class="counter">Runde <b id="roundCount">0</b> &nbsp;·&nbsp; empfohlen ab <b id="roundTarget">0</b></span>
+      <span>
+        <button class="linkbtn" id="saveProgressBtnDuel">Stand speichern</button>
+        &nbsp;·&nbsp;
+        <button class="linkbtn" id="undoBtn">rückgängig</button>
+      </span>
+    </div>
+
+    <div class="duel-row">
+      <div class="card" id="cardLeft"></div>
+      <div class="vs">vs</div>
+      <div class="card" id="cardRight"></div>
+    </div>
+
+    <div class="hint-row">
+      <span>← linke Karte wählen</span>
+      <span>rechte Karte wählen →</span>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn primary" id="showRankingBtn">Ranking ansehen</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: RANKING -->
+  <section class="screen" id="screen-ranking">
+    <div class="topbar">
+      <div>
+        <p class="eyebrow">Zwischenstand</p>
+        <h2 style="font-size:24px;">Aktuelles Ranking</h2>
+      </div>
+    </div>
+    <div id="rankList"></div>
+    <div class="foot-actions">
+      <button class="btn primary" id="continueBtn">Weiter duellieren</button>
+      <button class="btn" id="saveProgressBtnRank">Stand speichern (JSON)</button>
+      <button class="btn" id="exportBtn">Ranking als CSV exportieren</button>
+      <button class="btn" id="resetBtn">Neue Liste laden</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+let albums = [];
+let history = [];
+let lastOpponent = [];
+let current = null;
+let roundsPlayed = 0;
+let pendingProgress = null;
+
+const screens = {
+  resume: document.getElementById('screen-resume'),
+  upload: document.getElementById('screen-upload'),
+  duel: document.getElementById('screen-duel'),
+  ranking: document.getElementById('screen-ranking'),
+};
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.remove('active'));
+  screens[name].classList.add('active');
+}
+
+/* --- Local database (IndexedDB) --- */
+const DB_NAME = 'album-duell-db';
+const STORE = 'state';
+let dbPromise = null;
+
+function dbOpen(){
+  if(dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = ()=>{ req.result.createObjectStore(STORE); };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+  return dbPromise;
+}
+
+async function dbSaveState(){
+  try{
+    const db = await dbOpen();
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put({
+      albums, roundsPlayed, lastOpponent, savedAt: new Date().toISOString(),
+    }, 'current');
+    return new Promise(res=>{ tx.oncomplete = ()=>res(true); tx.onerror = ()=>res(false); });
+  }catch(e){ console.error('DB save failed', e); return false; }
+}
+
+async function dbLoadState(){
+  try{
+    const db = await dbOpen();
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get('current');
+    return new Promise(res=>{
+      req.onsuccess = ()=>res(req.result || null);
+      req.onerror = ()=>res(null);
+    });
+  }catch(e){ return null; }
+}
+
+async function dbClearState(){
+  try{
+    const db = await dbOpen();
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete('current');
+  }catch(e){}
+}
+
+function parseCSV(text){
+  const lines = text.split(/\r\n|\n|\r/).filter(l=>l.trim().length>0);
+  if(lines.length<2) throw new Error('CSV braucht eine Kopfzeile plus mindestens eine Datenzeile.');
+  const splitLine = (line)=>{
+    const out=[]; let cur=''; let inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){ if(inQ && line[i+1]==='"'){cur+='"';i++;} else inQ=!inQ; }
+      else if(c===',' && !inQ){ out.push(cur); cur=''; }
+      else cur+=c;
+    }
+    out.push(cur);
+    return out.map(s=>s.trim());
+  };
+  const header = splitLine(lines[0]).map(h=>h.toLowerCase());
+  const findCol = (names)=>header.findIndex(h=>names.includes(h));
+  const albumIdx = findCol(['album','albumtitle','titel','title']);
+  const artistIdx = findCol(['artist','interpret','künstler','kuenstler','band']);
+  const yearIdx = findCol(['year','jahr','releaseyear','erscheinungsjahr']);
+  const coverIdx = findCol(['cover','coverurl','image','imageurl','cover_url','image_url','artwork']);
+  if(albumIdx===-1 || artistIdx===-1) throw new Error('Spalten "album" und "artist" (oder "interpret") nicht gefunden.');
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const cols = splitLine(lines[i]);
+    if(cols.every(c=>c==='')) continue;
+    rows.push({
+      album: cols[albumIdx] || '(ohne Titel)',
+      artist: cols[artistIdx] || '',
+      year: yearIdx!==-1 ? cols[yearIdx] : '',
+      cover: coverIdx!==-1 ? cols[coverIdx] : '',
+      rating: 1000,
+      comparisons: 0,
+    });
+  }
+  if(rows.length<2) throw new Error('Mindestens 2 Alben nötig.');
+  return rows;
+}
+
+function normKey(album, artist){
+  return (album||'').trim().toLowerCase()+'|'+(artist||'').trim().toLowerCase();
+}
+
+function mergeWithProgress(rows, progress){
+  if(!progress || !Array.isArray(progress.albums)) return {rows, matched:0, added:0};
+  const map = new Map();
+  progress.albums.forEach(a=>map.set(normKey(a.album,a.artist), a));
+  let matched = 0;
+  rows.forEach(r=>{
+    const found = map.get(normKey(r.album,r.artist));
+    if(found){
+      r.rating = typeof found.rating==='number' ? found.rating : 1000;
+      r.comparisons = typeof found.comparisons==='number' ? found.comparisons : 0;
+      matched++;
+    }
+  });
+  const added = rows.length - matched;
+  return {rows, matched, added};
+}
+
+function setupUpload(){
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('fileInput');
+  const err = document.getElementById('uploadError');
+  const progressInput = document.getElementById('progressInput');
+  const progressLabelText = document.getElementById('progressLabelText');
+
+  progressInput.addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      try{
+        pendingProgress = JSON.parse(ev.target.result);
+        const n = Array.isArray(pendingProgress.albums) ? pendingProgress.albums.length : 0;
+        progressLabelText.textContent = '✓ Stand geladen ('+n+' Alben) — wird beim CSV-Import übernommen';
+      }catch(e2){
+        err.textContent = 'Konnte JSON-Datei nicht lesen: '+e2.message;
+        pendingProgress = null;
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  dz.addEventListener('click', ()=>input.click());
+  dz.addEventListener('dragover', e=>{e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop', e=>{
+    e.preventDefault(); dz.classList.remove('drag');
+    if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', e=>{
+    if(e.target.files[0]) handleFile(e.target.files[0]);
+  });
+  function handleFile(file){
+    err.textContent='';
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      try{
+        const rows = parseCSV(ev.target.result);
+        const {matched, added} = mergeWithProgress(rows, pendingProgress);
+        albums = rows;
+        history = [];
+        lastOpponent = albums.map(()=>null);
+        roundsPlayed = 0;
+        if(pendingProgress){
+          err.style.color = 'var(--muted)';
+          err.textContent = matched+' Alben mit altem Stand übernommen, '+added+' neu.';
+        }
+        dbSaveState();
+        startDuels();
+      }catch(e){
+        err.style.color = '#E24B4A';
+        err.textContent = e.message;
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+}
+
+function pickPair(){
+  const n = albums.length;
+  const minCount = Math.min(...albums.map(a=>a.comparisons));
+  const iCandidates = albums.map((a,idx)=>a.comparisons===minCount?idx:-1).filter(x=>x!==-1);
+  const i = iCandidates[Math.floor(Math.random()*iCandidates.length)];
+  let candidates = [];
+  for(let k=0;k<n;k++){ if(k!==i) candidates.push(k); }
+  const notLast = candidates.filter(k=>k!==lastOpponent[i]);
+  const pool = notLast.length>0 ? notLast : candidates;
+  const minC2 = Math.min(...pool.map(k=>albums[k].comparisons));
+  const tied = pool.filter(k=>albums[k].comparisons===minC2);
+  const j = tied[Math.floor(Math.random()*tied.length)];
+  return Math.random()<0.5 ? [i,j] : [j,i];
+}
+
+function renderCard(el, album){
+  el.innerHTML =
+    (album.cover ? '<img class="cover" src="'+escapeHTML(album.cover)+'" alt="" onerror="this.remove()">' : '') +
+    '<div class="album">'+escapeHTML(album.album)+'</div>'+
+    '<div class="artist">'+escapeHTML(album.artist)+'</div>'+
+    (album.year ? '<div class="year">'+escapeHTML(album.year)+'</div>' : '');
+}
+function escapeHTML(s){
+  return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function nextDuel(){
+  const [i,j] = pickPair();
+  current = {i,j};
+  renderCard(document.getElementById('cardLeft'), albums[i]);
+  renderCard(document.getElementById('cardRight'), albums[j]);
+  document.getElementById('roundCount').textContent = roundsPlayed;
+  const n = albums.length;
+  document.getElementById('roundTarget').textContent = Math.round(n*Math.log2(n)*1.5);
+  document.getElementById('undoBtn').disabled = history.length===0;
+}
+
+function elo(winnerIdx, loserIdx){
+  const K = 32;
+  const Rw = albums[winnerIdx].rating, Rl = albums[loserIdx].rating;
+  const Ew = 1/(1+Math.pow(10,(Rl-Rw)/400));
+  const El = 1 - Ew;
+  const newRw = Rw + K*(1-Ew);
+  const newRl = Rl + K*(0-El);
+  return [newRw, newRl];
+}
+
+function choose(winnerSide){
+  const {i,j} = current;
+  const winnerIdx = winnerSide==='left' ? i : j;
+  const loserIdx = winnerSide==='left' ? j : i;
+  const [newRw, newRl] = elo(winnerIdx, loserIdx);
+  history.push({
+    i, j, winnerIdx, loserIdx,
+    prevRatingWinner: albums[winnerIdx].rating,
+    prevRatingLoser: albums[loserIdx].rating,
+    prevLastOppWinner: lastOpponent[winnerIdx],
+    prevLastOppLoser: lastOpponent[loserIdx],
+  });
+  albums[winnerIdx].rating = newRw;
+  albums[loserIdx].rating = newRl;
+  albums[winnerIdx].comparisons++;
+  albums[loserIdx].comparisons++;
+  lastOpponent[winnerIdx] = loserIdx;
+  lastOpponent[loserIdx] = winnerIdx;
+  roundsPlayed++;
+  dbSaveState();
+  nextDuel();
+}
+
+function undo(){
+  if(history.length===0) return;
+  const h = history.pop();
+  albums[h.winnerIdx].rating = h.prevRatingWinner;
+  albums[h.loserIdx].rating = h.prevRatingLoser;
+  albums[h.winnerIdx].comparisons = Math.max(0, albums[h.winnerIdx].comparisons-1);
+  albums[h.loserIdx].comparisons = Math.max(0, albums[h.loserIdx].comparisons-1);
+  lastOpponent[h.winnerIdx] = h.prevLastOppWinner;
+  lastOpponent[h.loserIdx] = h.prevLastOppLoser;
+  roundsPlayed = Math.max(0, roundsPlayed-1);
+  dbSaveState();
+  nextDuel();
+}
+
+function renderRanking(){
+  const sorted = [...albums].sort((a,b)=>b.rating-a.rating);
+  const list = document.getElementById('rankList');
+  list.innerHTML = sorted.map((a,idx)=>(
+    '<div class="rank-row">'+
+      '<div class="rank-num">'+(idx+1)+'</div>'+
+      '<div class="rank-meta">'+
+      (a.cover ? '<img class="rank-cover" src="'+escapeHTML(a.cover)+'" alt="" onerror="this.remove()">' : '')+
+      '<div><div class="album">'+escapeHTML(a.album)+'</div>'+
+      '<div class="artist">'+escapeHTML(a.artist)+(a.year?' · '+escapeHTML(a.year):'')+'</div></div></div>'+
+      '<div class="rank-score">'+Math.round(a.rating)+'</div>'+
+    '</div>'
+  )).join('');
+}
+
+function exportCSV(){
+  const sorted = [...albums].sort((a,b)=>b.rating-a.rating);
+  const rows = [['Rang','Album','Artist','Jahr','Cover','Rating']];
+  sorted.forEach((a,idx)=>rows.push([idx+1, a.album, a.artist, a.year, a.cover, Math.round(a.rating)]));
+  const csv = rows.map(r=>r.map(v=>{
+    const s = String(v);
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'album-ranking.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function saveProgress(){
+  const data = {
+    exportedAt: new Date().toISOString(),
+    albums: albums.map(a=>({
+      album: a.album, artist: a.artist, year: a.year, cover: a.cover,
+      rating: Math.round(a.rating*1000)/1000, comparisons: a.comparisons,
+    })),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'album-ranking-stand.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function startDuels(){
+  showScreen('duel');
+  nextDuel();
+}
+
+document.getElementById('cardLeft').addEventListener('click', ()=>choose('left'));
+document.getElementById('cardRight').addEventListener('click', ()=>choose('right'));
+document.getElementById('undoBtn').addEventListener('click', undo);
+document.getElementById('showRankingBtn').addEventListener('click', ()=>{ renderRanking(); showScreen('ranking'); });
+document.getElementById('continueBtn').addEventListener('click', ()=>{ showScreen('duel'); nextDuel(); });
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
+document.getElementById('saveProgressBtnDuel').addEventListener('click', saveProgress);
+document.getElementById('saveProgressBtnRank').addEventListener('click', saveProgress);
+document.getElementById('resetBtn').addEventListener('click', fullReset);
+
+document.getElementById('resumeDuelBtn').addEventListener('click', ()=>{ showScreen('duel'); nextDuel(); });
+document.getElementById('resumeRankingBtn').addEventListener('click', ()=>{ renderRanking(); showScreen('ranking'); });
+document.getElementById('resumeAddBtn').addEventListener('click', ()=>{
+  pendingProgress = { albums };
+  showScreen('upload');
+});
+document.getElementById('resumeResetBtn').addEventListener('click', fullReset);
+
+function fullReset(){
+  albums=[]; history=[]; lastOpponent=[]; roundsPlayed=0; pendingProgress=null;
+  document.getElementById('fileInput').value='';
+  document.getElementById('progressInput').value='';
+  document.getElementById('progressLabelText').textContent='+ Backup-Datei einbinden (optional, .json — normalerweise nicht nötig)';
+  document.getElementById('uploadError').textContent='';
+  dbClearState();
+  showScreen('upload');
+}
+
+document.addEventListener('keydown', e=>{
+  if(!screens.duel.classList.contains('active')) return;
+  if(e.key==='ArrowLeft') choose('left');
+  if(e.key==='ArrowRight') choose('right');
+});
+
+setupUpload();
+
+(async function init(){
+  const saved = await dbLoadState();
+  if(saved && Array.isArray(saved.albums) && saved.albums.length>0){
+    albums = saved.albums;
+    roundsPlayed = saved.roundsPlayed || 0;
+    lastOpponent = saved.lastOpponent || albums.map(()=>null);
+    const totalComparisons = albums.reduce((s,a)=>s+(a.comparisons||0),0);
+    document.getElementById('resumeSummary').textContent =
+      albums.length+' Alben gespeichert · '+roundsPlayed+' Runden bisher gespielt.';
+    showScreen('resume');
+  }else{
+    showScreen('upload');
+  }
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+})();
+
+</script>
+</body>
+</html>
