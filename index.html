@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Album-Duell — finde dein Lieblingsalbum</title>
+<title>Rangliste-Duell — Alben, Songs &amp; Artists</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -53,11 +53,38 @@
   .lede{color:var(--muted);font-size:14px;line-height:1.6;margin:10px 0 0;max-width:56ch;}
 
   /* --- Vinyl signature element --- */
-  .vinyl{
-    width:120px;height:120px;flex:none;
+  .vinyl{ width:120px;height:120px;flex:none; }
+
+  /* --- Mode select screen --- */
+  .mode-grid{
+    margin-top:36px;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
   }
-  .vinyl-spin{animation:spin 3.2s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
+  .mode-tile{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:28px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .12s, transform .12s, background .12s;
+  }
+  .mode-tile:hover{border-color:var(--accent);background:var(--surface-2);transform:translateY(-2px);}
+  .mode-tile .mode-title{font-family:'Fraunces',serif;font-size:20px;font-weight:600;}
+  .mode-tile .mode-status{color:var(--muted);font-size:11px;margin-top:8px;line-height:1.5;}
+  @media(max-width:600px){ .mode-grid{grid-template-columns:1fr;} }
+
+  .topbar-mode{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .mode-pill{
+    font-size:11px;color:var(--accent);letter-spacing:.05em;
+    text-transform:uppercase;border:1px solid var(--accent-dim);
+    border-radius:20px;padding:4px 12px;
+  }
 
   /* --- Upload screen --- */
   .dropzone{
@@ -103,7 +130,8 @@
   .linkbtn{
     background:none;border:none;color:var(--accent);
     font-family:'IBM Plex Mono',monospace;font-size:12px;
-    cursor:pointer;text-decoration:underline;padding:0;
+    cursor:pointer;text-decoration:underline;padding:8px 4px;
+    min-height:36px;
   }
   .linkbtn:disabled{color:var(--muted);text-decoration:none;cursor:default;}
 
@@ -129,9 +157,9 @@
     border-radius:3px;margin:0 auto 18px;display:block;
     border:1px solid var(--border);
   }
-  .card .album{font-family:'Fraunces',serif;font-size:23px;font-weight:600;line-height:1.25;}
-  .card .artist{color:var(--muted);font-size:13px;margin-top:10px;}
-  .card .year{color:var(--accent-dim);font-size:12px;margin-top:4px;}
+  .card .item-title{font-family:'Fraunces',serif;font-size:23px;font-weight:600;line-height:1.25;}
+  .card .item-subtitle{color:var(--muted);font-size:13px;margin-top:10px;}
+  .card .item-meta{color:var(--accent-dim);font-size:12px;margin-top:4px;}
   .vs{
     font-family:'Fraunces',serif;font-style:italic;color:var(--muted);
     font-size:15px;flex:none;width:36px;text-align:center;
@@ -157,8 +185,8 @@
   }
   .rank-meta{flex:1;display:flex;align-items:center;gap:12px;}
   .rank-cover{width:40px;height:40px;object-fit:cover;border-radius:3px;border:1px solid var(--border);flex:none;}
-  .rank-meta .album{font-family:'Fraunces',serif;font-size:17px;font-weight:500;}
-  .rank-meta .artist{color:var(--muted);font-size:12px;margin-top:2px;}
+  .rank-meta .item-title{font-family:'Fraunces',serif;font-size:17px;font-weight:500;}
+  .rank-meta .item-subtitle{color:var(--muted);font-size:12px;margin-top:2px;}
   .rank-score{font-size:12px;color:var(--muted);flex:none;width:70px;text-align:right;}
 
   .btn{
@@ -189,8 +217,32 @@
 <body>
 <div class="wrap">
 
-  <!-- SCREEN 0: RESUME (shown if local DB already has a saved state) -->
+  <!-- SCREEN -1: MODE SELECT -->
+  <section class="screen active" id="screen-mode">
+    <div style="display:flex;align-items:center;gap:22px;">
+      <svg class="vinyl" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="36" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="26" fill="none" stroke="#262019" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="16" fill="#C9A227"/>
+        <circle cx="60" cy="60" r="3" fill="#14110D"/>
+      </svg>
+      <div>
+        <p class="eyebrow">Rangliste-Duell</p>
+        <h1 style="font-size:30px;">Was rankst du?</h1>
+        <p class="lede">Drei getrennte Ranglisten — jede mit eigenem CSV-Import und eigenem gespeicherten Stand.</p>
+      </div>
+    </div>
+    <div class="mode-grid" id="modeGrid"></div>
+  </section>
+
+  <!-- SCREEN 0: RESUME (shown if the chosen mode already has a saved state) -->
   <section class="screen" id="screen-resume">
+    <div class="topbar-mode">
+      <span class="mode-pill" id="resumePill"></span>
+      <button class="linkbtn" id="modeSwitchBtnResume">Kategorie wechseln</button>
+    </div>
     <div style="display:flex;align-items:center;gap:22px;">
       <svg class="vinyl" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
@@ -209,13 +261,17 @@
     <div class="foot-actions" style="justify-content:flex-start;margin-top:32px;">
       <button class="btn primary" id="resumeDuelBtn">Weiter duellieren</button>
       <button class="btn" id="resumeRankingBtn">Ranking ansehen</button>
-      <button class="btn" id="resumeAddBtn">Neue Alben per CSV hinzufügen</button>
+      <button class="btn" id="resumeAddBtn">Neue Einträge per CSV hinzufügen</button>
       <button class="btn" id="resumeResetBtn">Alles löschen &amp; neu starten</button>
     </div>
   </section>
 
   <!-- SCREEN 1: UPLOAD -->
-  <section class="screen active" id="screen-upload">
+  <section class="screen" id="screen-upload">
+    <div class="topbar-mode">
+      <span class="mode-pill" id="uploadPill"></span>
+      <button class="linkbtn" id="modeSwitchBtnUpload">Kategorie wechseln</button>
+    </div>
     <div style="display:flex;align-items:center;gap:22px;">
       <svg class="vinyl" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
@@ -226,9 +282,9 @@
         <circle cx="60" cy="60" r="3" fill="#14110D"/>
       </svg>
       <div>
-        <p class="eyebrow">Album-Duell</p>
+        <p class="eyebrow" id="uploadEyebrow">Album-Duell</p>
         <h1 style="font-size:30px;">Wer gewinnt?</h1>
-        <p class="lede">Lade deine Album-Liste als CSV hoch. Jede Runde treten zwei zufällige Alben gegeneinander an — du entscheidest, am Ende steht dein Ranking fest.</p>
+        <p class="lede" id="uploadLede">Lade deine Liste als CSV hoch. Jede Runde treten zwei zufällige Einträge gegeneinander an — du entscheidest, am Ende steht dein Ranking fest.</p>
       </div>
     </div>
 
@@ -238,11 +294,7 @@
       <input type="file" id="fileInput" accept=".csv">
     </div>
 
-    <div class="format-hint">
-      Erwartete Spalten (Reihenfolge egal, Groß-/Kleinschreibung egal):<br>
-      <code>album</code>, <code>artist</code> (oder <code>interpret</code>), <code>year</code> (oder <code>jahr</code>), optional <code>cover</code> (Bild-URL)<br>
-      Beispiel: <code>Album,Artist,Year,Cover&#10;OK Computer,Radiohead,1997,https://.../cover.jpg</code>
-    </div>
+    <div class="format-hint" id="formatHint"></div>
     <p id="uploadError" style="color:#E24B4A;font-size:12px;margin-top:12px;"></p>
 
     <div class="progress-import">
@@ -256,11 +308,16 @@
   <!-- SCREEN 2: DUEL -->
   <section class="screen" id="screen-duel">
     <div class="topbar">
-      <span class="counter">Runde <b id="roundCount">0</b> &nbsp;·&nbsp; empfohlen ab <b id="roundTarget">0</b></span>
+      <span class="counter">
+        <span class="mode-pill" id="duelPill" style="margin-right:8px;"></span>
+        Runde <b id="roundCount">0</b> &nbsp;·&nbsp; empfohlen ab <b id="roundTarget">0</b>
+      </span>
       <span>
         <button class="linkbtn" id="saveProgressBtnDuel">Stand speichern</button>
         &nbsp;·&nbsp;
         <button class="linkbtn" id="undoBtn">rückgängig</button>
+        &nbsp;·&nbsp;
+        <button class="linkbtn" id="modeSwitchBtnDuel">Kategorie</button>
       </span>
     </div>
 
@@ -284,9 +341,10 @@
   <section class="screen" id="screen-ranking">
     <div class="topbar">
       <div>
-        <p class="eyebrow">Zwischenstand</p>
+        <p class="eyebrow" id="rankingPill">Zwischenstand</p>
         <h2 style="font-size:24px;">Aktuelles Ranking</h2>
       </div>
+      <button class="linkbtn" id="modeSwitchBtnRanking">Kategorie wechseln</button>
     </div>
     <div id="rankList"></div>
     <div class="foot-actions">
@@ -300,7 +358,57 @@
 </div>
 
 <script>
-let albums = [];
+/* ============ MODE DEFINITIONS ============ */
+const MODES = {
+  albums: {
+    key: 'albums', label: 'Alben', titleWord: 'Album', pluralWord: 'Alben',
+    eyebrow: 'Album-Duell',
+    lede: 'Lade deine Album-Liste als CSV hoch. Jede Runde treten zwei zufällige Alben gegeneinander an — du entscheidest, am Ende steht dein Ranking fest.',
+    columns: {
+      title: ['album','albumtitle','titel','title'],
+      subtitle: ['artist','interpret','künstler','kuenstler','band'],
+      meta: ['year','jahr','releaseyear','erscheinungsjahr'],
+      cover: ['cover','coverurl','image','imageurl','cover_url','image_url','artwork'],
+    },
+    requireSubtitle: true,
+    subtitleLabel: 'artist" (oder "interpret")',
+    csvHeaders: ['Rang','Album','Artist','Jahr','Cover','Rating'],
+    formatExample: 'Album,Artist,Year,Cover<br>OK Computer,Radiohead,1997,https://.../cover.jpg',
+  },
+  songs: {
+    key: 'songs', label: 'Songs', titleWord: 'Song', pluralWord: 'Songs',
+    eyebrow: 'Song-Duell',
+    lede: 'Lade deine Song-Liste als CSV hoch. Jede Runde treten zwei zufällige Songs gegeneinander an — du entscheidest, am Ende steht dein Ranking fest.',
+    columns: {
+      title: ['song','title','titel','track','songtitle'],
+      subtitle: ['artist','interpret','künstler','kuenstler','band'],
+      meta: ['album','albumtitle'],
+      cover: ['cover','coverurl','image','imageurl','cover_url','image_url','artwork'],
+    },
+    requireSubtitle: true,
+    subtitleLabel: 'artist" (oder "interpret")',
+    csvHeaders: ['Rang','Song','Artist','Album','Cover','Rating'],
+    formatExample: 'Song,Artist,Album,Cover<br>Paranoid Android,Radiohead,OK Computer,https://.../cover.jpg',
+  },
+  artists: {
+    key: 'artists', label: 'Artists', titleWord: 'Artist', pluralWord: 'Artists',
+    eyebrow: 'Artist-Duell',
+    lede: 'Lade deine Artist-Liste als CSV hoch. Jede Runde treten zwei zufällige Artists gegeneinander an — du entscheidest, am Ende steht dein Ranking fest.',
+    columns: {
+      title: ['artist','interpret','künstler','kuenstler','name','band'],
+      subtitle: [],
+      meta: [],
+      cover: ['cover','coverurl','image','imageurl','photo','picture'],
+    },
+    requireSubtitle: false,
+    subtitleLabel: 'artist',
+    csvHeaders: ['Rang','Artist','Cover','Rating'],
+    formatExample: 'Artist,Cover<br>Radiohead,https://.../photo.jpg',
+  },
+};
+
+let currentModeKey = null;
+let items = [];
 let history = [];
 let lastOpponent = [];
 let current = null;
@@ -308,6 +416,7 @@ let roundsPlayed = 0;
 let pendingProgress = null;
 
 const screens = {
+  mode: document.getElementById('screen-mode'),
   resume: document.getElementById('screen-resume'),
   upload: document.getElementById('screen-upload'),
   duel: document.getElementById('screen-duel'),
@@ -318,8 +427,8 @@ function showScreen(name){
   screens[name].classList.add('active');
 }
 
-/* --- Local database (IndexedDB) --- */
-const DB_NAME = 'album-duell-db';
+/* ============ Local database (IndexedDB), one record per mode ============ */
+const DB_NAME = 'ranking-duell-db';
 const STORE = 'state';
 let dbPromise = null;
 
@@ -335,21 +444,22 @@ function dbOpen(){
 }
 
 async function dbSaveState(){
+  if(!currentModeKey) return false;
   try{
     const db = await dbOpen();
     const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put({
-      albums, roundsPlayed, lastOpponent, savedAt: new Date().toISOString(),
-    }, 'current');
+      items, roundsPlayed, lastOpponent, savedAt: new Date().toISOString(),
+    }, currentModeKey);
     return new Promise(res=>{ tx.oncomplete = ()=>res(true); tx.onerror = ()=>res(false); });
   }catch(e){ console.error('DB save failed', e); return false; }
 }
 
-async function dbLoadState(){
+async function dbLoadState(modeKey){
   try{
     const db = await dbOpen();
     const tx = db.transaction(STORE, 'readonly');
-    const req = tx.objectStore(STORE).get('current');
+    const req = tx.objectStore(STORE).get(modeKey);
     return new Promise(res=>{
       req.onsuccess = ()=>res(req.result || null);
       req.onerror = ()=>res(null);
@@ -357,15 +467,54 @@ async function dbLoadState(){
   }catch(e){ return null; }
 }
 
-async function dbClearState(){
+async function dbClearState(modeKey){
   try{
     const db = await dbOpen();
     const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).delete('current');
+    tx.objectStore(STORE).delete(modeKey);
   }catch(e){}
 }
 
-function parseCSV(text){
+/* One-time migration from the old single-mode app (DB "album-duell-db", key "current") */
+async function migrateOldData(){
+  try{
+    const already = await dbLoadState('albums');
+    if(already && Array.isArray(already.items) && already.items.length>0) return;
+    const oldDb = await new Promise((res)=>{
+      const req = indexedDB.open('album-duell-db', 1);
+      req.onsuccess = ()=>res(req.result);
+      req.onerror = ()=>res(null);
+      req.onupgradeneeded = ()=>{};
+    });
+    if(!oldDb) return;
+    if(!oldDb.objectStoreNames.contains('state')){ oldDb.close(); return; }
+    const old = await new Promise((res)=>{
+      const tx = oldDb.transaction('state','readonly');
+      const r = tx.objectStore('state').get('current');
+      r.onsuccess = ()=>res(r.result);
+      r.onerror = ()=>res(null);
+    });
+    oldDb.close();
+    if(old && Array.isArray(old.albums) && old.albums.length>0){
+      const migratedItems = old.albums.map(a=>({
+        title: a.album, subtitle: a.artist, meta: a.year||'', cover: a.cover||'',
+        rating: a.rating, comparisons: a.comparisons||0,
+      }));
+      const db = await dbOpen();
+      const tx2 = db.transaction(STORE,'readwrite');
+      tx2.objectStore(STORE).put({
+        items: migratedItems,
+        roundsPlayed: old.roundsPlayed||0,
+        lastOpponent: old.lastOpponent||migratedItems.map(()=>null),
+        savedAt: new Date().toISOString(),
+      }, 'albums');
+      await new Promise(res=>{ tx2.oncomplete=()=>res(); tx2.onerror=()=>res(); });
+    }
+  }catch(e){ console.error('Migration failed', e); }
+}
+
+/* ============ CSV parsing (generic per mode) ============ */
+function parseCSV(text, modeCfg){
   const lines = text.split(/\r\n|\n|\r/).filter(l=>l.trim().length>0);
   if(lines.length<2) throw new Error('CSV braucht eine Kopfzeile plus mindestens eine Datenzeile.');
   const countOutsideQuotes = (line, ch)=>{
@@ -393,39 +542,39 @@ function parseCSV(text){
   };
   const header = splitLine(lines[0]).map(h=>h.toLowerCase());
   const findCol = (names)=>header.findIndex(h=>names.includes(h));
-  const albumIdx = findCol(['album','albumtitle','titel','title']);
-  const artistIdx = findCol(['artist','interpret','künstler','kuenstler','band']);
-  const yearIdx = findCol(['year','jahr','releaseyear','erscheinungsjahr']);
-  const coverIdx = findCol(['cover','coverurl','image','imageurl','cover_url','image_url','artwork']);
-  if(albumIdx===-1 || artistIdx===-1) throw new Error('Spalten "album" und "artist" (oder "interpret") nicht gefunden.');
+  const titleIdx = findCol(modeCfg.columns.title);
+  const subtitleIdx = findCol(modeCfg.columns.subtitle);
+  const metaIdx = findCol(modeCfg.columns.meta);
+  const coverIdx = findCol(modeCfg.columns.cover);
+  if(titleIdx===-1) throw new Error('Spalte "'+modeCfg.titleWord.toLowerCase()+'" (oder ähnlich) nicht gefunden.');
   const rows = [];
   for(let i=1;i<lines.length;i++){
     const cols = splitLine(lines[i]);
     if(cols.every(c=>c==='')) continue;
     rows.push({
-      album: cols[albumIdx] || '(ohne Titel)',
-      artist: cols[artistIdx] || '',
-      year: yearIdx!==-1 ? cols[yearIdx] : '',
-      cover: coverIdx!==-1 ? cols[coverIdx] : '',
+      title: cols[titleIdx] || '(ohne Titel)',
+      subtitle: subtitleIdx!==-1 ? (cols[subtitleIdx]||'') : '',
+      meta: metaIdx!==-1 ? (cols[metaIdx]||'') : '',
+      cover: coverIdx!==-1 ? (cols[coverIdx]||'') : '',
       rating: 1000,
       comparisons: 0,
     });
   }
-  if(rows.length<2) throw new Error('Mindestens 2 Alben nötig.');
+  if(rows.length<2) throw new Error('Mindestens 2 Einträge nötig.');
   return rows;
 }
 
-function normKey(album, artist){
-  return (album||'').trim().toLowerCase()+'|'+(artist||'').trim().toLowerCase();
+function normKey(title, subtitle){
+  return (title||'').trim().toLowerCase()+'|'+(subtitle||'').trim().toLowerCase();
 }
 
 function mergeWithProgress(rows, progress){
-  if(!progress || !Array.isArray(progress.albums)) return {rows, matched:0, added:0};
+  if(!progress || !Array.isArray(progress.items)) return {rows, matched:0, added:0};
   const map = new Map();
-  progress.albums.forEach(a=>map.set(normKey(a.album,a.artist), a));
+  progress.items.forEach(a=>map.set(normKey(a.title,a.subtitle), a));
   let matched = 0;
   rows.forEach(r=>{
-    const found = map.get(normKey(r.album,r.artist));
+    const found = map.get(normKey(r.title,r.subtitle));
     if(found){
       r.rating = typeof found.rating==='number' ? found.rating : 1000;
       r.comparisons = typeof found.comparisons==='number' ? found.comparisons : 0;
@@ -436,6 +585,73 @@ function mergeWithProgress(rows, progress){
   return {rows, matched, added};
 }
 
+/* ============ Mode select screen ============ */
+function buildModeGrid(){
+  const grid = document.getElementById('modeGrid');
+  grid.innerHTML = '';
+  Object.values(MODES).forEach(mode=>{
+    const tile = document.createElement('div');
+    tile.className = 'mode-tile';
+    tile.innerHTML = '<div class="mode-title">'+mode.label+'</div><div class="mode-status" id="status-'+mode.key+'">wird geladen…</div>';
+    tile.addEventListener('click', ()=>enterMode(mode.key));
+    grid.appendChild(tile);
+  });
+  Object.values(MODES).forEach(async mode=>{
+    const saved = await dbLoadState(mode.key);
+    const el = document.getElementById('status-'+mode.key);
+    if(saved && Array.isArray(saved.items) && saved.items.length>0){
+      el.textContent = saved.items.length+' '+mode.pluralWord+' · '+(saved.roundsPlayed||0)+' Runden';
+    }else{
+      el.textContent = 'Noch keine Daten';
+    }
+  });
+}
+
+async function enterMode(modeKey){
+  currentModeKey = modeKey;
+  const mode = MODES[modeKey];
+  pendingProgress = null;
+  ['resumePill','uploadPill','duelPill'].forEach(id=>{
+    document.getElementById(id).textContent = mode.label;
+  });
+  document.getElementById('rankingPill').textContent = mode.label+' · Zwischenstand';
+  document.getElementById('uploadEyebrow').textContent = mode.eyebrow;
+  document.getElementById('uploadLede').textContent = mode.lede;
+  document.getElementById('formatHint').innerHTML =
+    'Erwartete Spalten (Reihenfolge egal, Groß-/Kleinschreibung egal):<br>'+
+    describeColumns(mode)+'<br>Beispiel: <code>'+mode.formatExample+'</code>';
+  document.getElementById('resumeAddBtn').textContent = 'Neue '+mode.pluralWord+' per CSV hinzufügen';
+
+  const saved = await dbLoadState(modeKey);
+  if(saved && Array.isArray(saved.items) && saved.items.length>0){
+    items = saved.items;
+    roundsPlayed = saved.roundsPlayed || 0;
+    lastOpponent = saved.lastOpponent || items.map(()=>null);
+    history = [];
+    document.getElementById('resumeSummary').textContent =
+      items.length+' '+mode.pluralWord+' gespeichert · '+roundsPlayed+' Runden bisher gespielt.';
+    showScreen('resume');
+  }else{
+    items = []; history = []; lastOpponent = []; roundsPlayed = 0;
+    showScreen('upload');
+  }
+}
+
+function describeColumns(mode){
+  const parts = [];
+  parts.push('<code>'+mode.columns.title[0]+'</code>');
+  if(mode.columns.subtitle.length) parts.push('optional <code>'+mode.columns.subtitle[0]+'</code> (oder <code>interpret</code>)');
+  if(mode.columns.meta.length) parts.push('optional <code>'+mode.columns.meta[0]+'</code>');
+  parts.push('optional <code>cover</code> (Bild-URL)');
+  return parts.join(', ');
+}
+
+function backToModeSelect(){
+  buildModeGrid();
+  showScreen('mode');
+}
+
+/* ============ Upload flow ============ */
 function setupUpload(){
   const dz = document.getElementById('dropzone');
   const input = document.getElementById('fileInput');
@@ -450,8 +666,8 @@ function setupUpload(){
     reader.onload = ev=>{
       try{
         pendingProgress = JSON.parse(ev.target.result);
-        const n = Array.isArray(pendingProgress.albums) ? pendingProgress.albums.length : 0;
-        progressLabelText.textContent = '✓ Stand geladen ('+n+' Alben) — wird beim CSV-Import übernommen';
+        const n = Array.isArray(pendingProgress.items) ? pendingProgress.items.length : 0;
+        progressLabelText.textContent = '✓ Stand geladen ('+n+' Einträge) — wird beim CSV-Import übernommen';
       }catch(e2){
         err.textContent = 'Konnte JSON-Datei nicht lesen: '+e2.message;
         pendingProgress = null;
@@ -475,15 +691,16 @@ function setupUpload(){
     const reader = new FileReader();
     reader.onload = ev=>{
       try{
-        const rows = parseCSV(ev.target.result);
+        const mode = MODES[currentModeKey];
+        const rows = parseCSV(ev.target.result, mode);
         const {matched, added} = mergeWithProgress(rows, pendingProgress);
-        albums = rows;
+        items = rows;
         history = [];
-        lastOpponent = albums.map(()=>null);
+        lastOpponent = items.map(()=>null);
         roundsPlayed = 0;
         if(pendingProgress){
           err.style.color = 'var(--muted)';
-          err.textContent = matched+' Alben mit altem Stand übernommen, '+added+' neu.';
+          err.textContent = matched+' Einträge mit altem Stand übernommen, '+added+' neu.';
         }
         dbSaveState();
         startDuels();
@@ -496,46 +713,51 @@ function setupUpload(){
   }
 }
 
+/* ============ Pairing + Elo ============ */
 function pickPair(){
-  const n = albums.length;
-  const minCount = Math.min(...albums.map(a=>a.comparisons));
-  const iCandidates = albums.map((a,idx)=>a.comparisons===minCount?idx:-1).filter(x=>x!==-1);
+  const n = items.length;
+  const minCount = Math.min(...items.map(a=>a.comparisons));
+  const iCandidates = items.map((a,idx)=>a.comparisons===minCount?idx:-1).filter(x=>x!==-1);
   const i = iCandidates[Math.floor(Math.random()*iCandidates.length)];
   let candidates = [];
   for(let k=0;k<n;k++){ if(k!==i) candidates.push(k); }
   const notLast = candidates.filter(k=>k!==lastOpponent[i]);
   const pool = notLast.length>0 ? notLast : candidates;
-  const minC2 = Math.min(...pool.map(k=>albums[k].comparisons));
-  const tied = pool.filter(k=>albums[k].comparisons===minC2);
+  const minC2 = Math.min(...pool.map(k=>items[k].comparisons));
+  const tied = pool.filter(k=>items[k].comparisons===minC2);
   const j = tied[Math.floor(Math.random()*tied.length)];
   return Math.random()<0.5 ? [i,j] : [j,i];
 }
 
-function renderCard(el, album){
+function renderCard(el, item){
   el.innerHTML =
-    (album.cover ? '<img class="cover" src="'+escapeHTML(album.cover)+'" alt="" onerror="this.remove()">' : '') +
-    '<div class="album">'+escapeHTML(album.album)+'</div>'+
-    '<div class="artist">'+escapeHTML(album.artist)+'</div>'+
-    (album.year ? '<div class="year">'+escapeHTML(album.year)+'</div>' : '');
+    (item.cover ? '<img class="cover" src="'+escapeHTML(item.cover)+'" alt="" onerror="this.remove()">' : '') +
+    '<div class="item-title">'+escapeHTML(item.title)+'</div>'+
+    (item.subtitle ? '<div class="item-subtitle">'+escapeHTML(item.subtitle)+'</div>' : '')+
+    (item.meta ? '<div class="item-meta">'+escapeHTML(item.meta)+'</div>' : '');
 }
 function escapeHTML(s){
   return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
 
-function nextDuel(){
-  const [i,j] = pickPair();
+function renderDuel(i,j){
   current = {i,j};
-  renderCard(document.getElementById('cardLeft'), albums[i]);
-  renderCard(document.getElementById('cardRight'), albums[j]);
+  renderCard(document.getElementById('cardLeft'), items[i]);
+  renderCard(document.getElementById('cardRight'), items[j]);
   document.getElementById('roundCount').textContent = roundsPlayed;
-  const n = albums.length;
+  const n = items.length;
   document.getElementById('roundTarget').textContent = Math.round(n*Math.log2(n)*1.5);
   document.getElementById('undoBtn').disabled = history.length===0;
 }
 
+function nextDuel(){
+  const [i,j] = pickPair();
+  renderDuel(i,j);
+}
+
 function elo(winnerIdx, loserIdx){
   const K = 32;
-  const Rw = albums[winnerIdx].rating, Rl = albums[loserIdx].rating;
+  const Rw = items[winnerIdx].rating, Rl = items[loserIdx].rating;
   const Ew = 1/(1+Math.pow(10,(Rl-Rw)/400));
   const El = 1 - Ew;
   const newRw = Rw + K*(1-Ew);
@@ -550,15 +772,15 @@ function choose(winnerSide){
   const [newRw, newRl] = elo(winnerIdx, loserIdx);
   history.push({
     i, j, winnerIdx, loserIdx,
-    prevRatingWinner: albums[winnerIdx].rating,
-    prevRatingLoser: albums[loserIdx].rating,
+    prevRatingWinner: items[winnerIdx].rating,
+    prevRatingLoser: items[loserIdx].rating,
     prevLastOppWinner: lastOpponent[winnerIdx],
     prevLastOppLoser: lastOpponent[loserIdx],
   });
-  albums[winnerIdx].rating = newRw;
-  albums[loserIdx].rating = newRl;
-  albums[winnerIdx].comparisons++;
-  albums[loserIdx].comparisons++;
+  items[winnerIdx].rating = newRw;
+  items[loserIdx].rating = newRl;
+  items[winnerIdx].comparisons++;
+  items[loserIdx].comparisons++;
   lastOpponent[winnerIdx] = loserIdx;
   lastOpponent[loserIdx] = winnerIdx;
   roundsPlayed++;
@@ -569,36 +791,46 @@ function choose(winnerSide){
 function undo(){
   if(history.length===0) return;
   const h = history.pop();
-  albums[h.winnerIdx].rating = h.prevRatingWinner;
-  albums[h.loserIdx].rating = h.prevRatingLoser;
-  albums[h.winnerIdx].comparisons = Math.max(0, albums[h.winnerIdx].comparisons-1);
-  albums[h.loserIdx].comparisons = Math.max(0, albums[h.loserIdx].comparisons-1);
+  items[h.winnerIdx].rating = h.prevRatingWinner;
+  items[h.loserIdx].rating = h.prevRatingLoser;
+  items[h.winnerIdx].comparisons = Math.max(0, items[h.winnerIdx].comparisons-1);
+  items[h.loserIdx].comparisons = Math.max(0, items[h.loserIdx].comparisons-1);
   lastOpponent[h.winnerIdx] = h.prevLastOppWinner;
   lastOpponent[h.loserIdx] = h.prevLastOppLoser;
   roundsPlayed = Math.max(0, roundsPlayed-1);
   dbSaveState();
-  nextDuel();
+  renderDuel(h.i, h.j);
 }
 
+/* ============ Ranking + export ============ */
 function renderRanking(){
-  const sorted = [...albums].sort((a,b)=>b.rating-a.rating);
+  const sorted = [...items].sort((a,b)=>b.rating-a.rating);
   const list = document.getElementById('rankList');
   list.innerHTML = sorted.map((a,idx)=>(
     '<div class="rank-row">'+
       '<div class="rank-num">'+(idx+1)+'</div>'+
       '<div class="rank-meta">'+
       (a.cover ? '<img class="rank-cover" src="'+escapeHTML(a.cover)+'" alt="" onerror="this.remove()">' : '')+
-      '<div><div class="album">'+escapeHTML(a.album)+'</div>'+
-      '<div class="artist">'+escapeHTML(a.artist)+(a.year?' · '+escapeHTML(a.year):'')+'</div></div></div>'+
+      '<div><div class="item-title">'+escapeHTML(a.title)+'</div>'+
+      '<div class="item-subtitle">'+escapeHTML(a.subtitle)+(a.meta?' · '+escapeHTML(a.meta):'')+'</div></div></div>'+
       '<div class="rank-score">'+Math.round(a.rating)+'</div>'+
     '</div>'
   )).join('');
 }
 
 function exportCSV(){
-  const sorted = [...albums].sort((a,b)=>b.rating-a.rating);
-  const rows = [['Rang','Album','Artist','Jahr','Cover','Rating']];
-  sorted.forEach((a,idx)=>rows.push([idx+1, a.album, a.artist, a.year, a.cover, Math.round(a.rating)]));
+  const mode = MODES[currentModeKey];
+  const hasSubtitle = mode.columns.subtitle.length>0;
+  const hasMeta = mode.columns.meta.length>0;
+  const sorted = [...items].sort((a,b)=>b.rating-a.rating);
+  const rows = [mode.csvHeaders];
+  sorted.forEach((a,idx)=>{
+    const row = [idx+1, a.title];
+    if(hasSubtitle) row.push(a.subtitle);
+    if(hasMeta) row.push(a.meta);
+    row.push(a.cover, Math.round(a.rating));
+    rows.push(row);
+  });
   const csv = rows.map(r=>r.map(v=>{
     const s = String(v);
     return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
@@ -606,23 +838,24 @@ function exportCSV(){
   const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'album-ranking.csv';
+  a.href = url; a.download = currentModeKey+'-ranking.csv';
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function saveProgress(){
   const data = {
+    mode: currentModeKey,
     exportedAt: new Date().toISOString(),
-    albums: albums.map(a=>({
-      album: a.album, artist: a.artist, year: a.year, cover: a.cover,
+    items: items.map(a=>({
+      title: a.title, subtitle: a.subtitle, meta: a.meta, cover: a.cover,
       rating: Math.round(a.rating*1000)/1000, comparisons: a.comparisons,
     })),
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'album-ranking-stand.json';
+  a.href = url; a.download = currentModeKey+'-ranking-stand.json';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -632,6 +865,7 @@ function startDuels(){
   nextDuel();
 }
 
+/* ============ Wiring ============ */
 document.getElementById('cardLeft').addEventListener('click', ()=>choose('left'));
 document.getElementById('cardRight').addEventListener('click', ()=>choose('right'));
 document.getElementById('undoBtn').addEventListener('click', undo);
@@ -642,21 +876,26 @@ document.getElementById('saveProgressBtnDuel').addEventListener('click', savePro
 document.getElementById('saveProgressBtnRank').addEventListener('click', saveProgress);
 document.getElementById('resetBtn').addEventListener('click', fullReset);
 
+document.getElementById('modeSwitchBtnResume').addEventListener('click', backToModeSelect);
+document.getElementById('modeSwitchBtnUpload').addEventListener('click', backToModeSelect);
+document.getElementById('modeSwitchBtnDuel').addEventListener('click', backToModeSelect);
+document.getElementById('modeSwitchBtnRanking').addEventListener('click', backToModeSelect);
+
 document.getElementById('resumeDuelBtn').addEventListener('click', ()=>{ showScreen('duel'); nextDuel(); });
 document.getElementById('resumeRankingBtn').addEventListener('click', ()=>{ renderRanking(); showScreen('ranking'); });
 document.getElementById('resumeAddBtn').addEventListener('click', ()=>{
-  pendingProgress = { albums };
+  pendingProgress = { items };
   showScreen('upload');
 });
 document.getElementById('resumeResetBtn').addEventListener('click', fullReset);
 
 function fullReset(){
-  albums=[]; history=[]; lastOpponent=[]; roundsPlayed=0; pendingProgress=null;
+  dbClearState(currentModeKey);
+  items=[]; history=[]; lastOpponent=[]; roundsPlayed=0; pendingProgress=null;
   document.getElementById('fileInput').value='';
   document.getElementById('progressInput').value='';
   document.getElementById('progressLabelText').textContent='+ Backup-Datei einbinden (optional, .json — normalerweise nicht nötig)';
   document.getElementById('uploadError').textContent='';
-  dbClearState();
   showScreen('upload');
 }
 
@@ -667,25 +906,15 @@ document.addEventListener('keydown', e=>{
 });
 
 setupUpload();
-
 (async function init(){
-  const saved = await dbLoadState();
-  if(saved && Array.isArray(saved.albums) && saved.albums.length>0){
-    albums = saved.albums;
-    roundsPlayed = saved.roundsPlayed || 0;
-    lastOpponent = saved.lastOpponent || albums.map(()=>null);
-    const totalComparisons = albums.reduce((s,a)=>s+(a.comparisons||0),0);
-    document.getElementById('resumeSummary').textContent =
-      albums.length+' Alben gespeichert · '+roundsPlayed+' Runden bisher gespielt.';
-    showScreen('resume');
-  }else{
-    showScreen('upload');
-  }
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  }
+  await migrateOldData();
+  buildModeGrid();
+  showScreen('mode');
 })();
 
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>

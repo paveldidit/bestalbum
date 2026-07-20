@@ -1,7 +1,7 @@
 {
-  "name": "Album-Duell",
-  "short_name": "Album-Duell",
-  "description": "Finde dein Lieblingsalbum per Paarvergleich",
+  "name": "Rangliste-Duell",
+  "short_name": "Rang-Duell",
+  "description": "Finde deine Lieblings-Alben, -Songs und -Artists per Paarvergleich",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
