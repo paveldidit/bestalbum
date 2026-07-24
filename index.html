@@ -36,6 +36,7 @@
     display:flex;
     flex-direction:column;
     align-items:center;
+    overflow-x:hidden;
   }
   .wrap{
     width:100%;
@@ -52,7 +53,7 @@
   }
   .lede{color:var(--muted);font-size:14px;line-height:1.6;margin:10px 0 0;max-width:56ch;}
 
-  /* --- Vinyl signature element --- */
+  .screen-header{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
   .vinyl{ width:120px;height:120px;flex:none; }
 
   /* --- Mode select screen --- */
@@ -78,7 +79,7 @@
 
   .topbar-mode{
     display:flex;align-items:center;justify-content:space-between;
-    margin-bottom:20px;
+    margin-bottom:20px;flex-wrap:wrap;gap:8px;
   }
   .mode-pill{
     font-size:11px;color:var(--accent);letter-spacing:.05em;
@@ -120,12 +121,30 @@
     text-decoration:underline;
   }
 
+  /* --- Column mapping screen --- */
+  .colmap-rows{margin-top:24px;display:flex;flex-direction:column;gap:10px;}
+  .colmap-row{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--border);border-radius:4px;
+    padding:10px 14px;
+  }
+  .colmap-header{font-family:'Fraunces',serif;font-size:14px;min-width:130px;flex:none;word-break:break-word;}
+  .colmap-select{
+    background:var(--bg);color:var(--text);border:1px solid var(--border);
+    border-radius:4px;padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;
+  }
+  .colmap-extra-opts{display:inline-flex;align-items:center;gap:10px;font-size:11px;color:var(--muted);flex-wrap:wrap;}
+  .colmap-label{
+    background:var(--bg);color:var(--text);border:1px solid var(--border);
+    border-radius:4px;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:140px;
+  }
+
   /* --- Duel screen --- */
   .topbar{
     display:flex;align-items:center;justify-content:space-between;
-    margin-bottom:36px;
+    margin-bottom:36px;flex-wrap:wrap;gap:10px;
   }
-  .counter{font-size:12px;color:var(--muted);letter-spacing:.05em;}
+  .counter{font-size:12px;color:var(--muted);letter-spacing:.05em;display:flex;align-items:center;flex-wrap:wrap;gap:4px;}
   .counter b{color:var(--text);font-weight:500;}
   .linkbtn{
     background:none;border:none;color:var(--accent);
@@ -134,6 +153,9 @@
     min-height:36px;
   }
   .linkbtn:disabled{color:var(--muted);text-decoration:none;cursor:default;}
+  .topbar-actions{display:flex;align-items:center;flex-wrap:wrap;}
+  .undo-key-hint{font-size:10px;color:var(--muted);}
+  .undo-key-hint .linkbtn{padding:2px 4px;min-height:auto;font-size:10px;}
 
   .duel-row{
     display:flex;align-items:center;justify-content:center;gap:24px;
@@ -160,6 +182,9 @@
   .card .item-title{font-family:'Fraunces',serif;font-size:23px;font-weight:600;line-height:1.25;}
   .card .item-subtitle{color:var(--muted);font-size:13px;margin-top:10px;}
   .card .item-meta{color:var(--accent-dim);font-size:12px;margin-top:4px;}
+  .item-extras{margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;}
+  .tag{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:12px;padding:2px 9px;background:var(--surface-2);}
+  .rank-meta .item-extras{justify-content:flex-start;margin-top:4px;}
   .vs{
     font-family:'Fraunces',serif;font-style:italic;color:var(--muted);
     font-size:15px;flex:none;width:36px;text-align:center;
@@ -183,7 +208,7 @@
     font-family:'Fraunces',serif;font-size:26px;font-weight:600;
     color:var(--accent);width:44px;flex:none;text-align:right;
   }
-  .rank-meta{flex:1;display:flex;align-items:center;gap:12px;}
+  .rank-meta{flex:1;display:flex;align-items:center;gap:12px;min-width:0;}
   .rank-cover{width:40px;height:40px;object-fit:cover;border-radius:3px;border:1px solid var(--border);flex:none;}
   .rank-meta .item-title{font-family:'Fraunces',serif;font-size:17px;font-weight:500;}
   .rank-meta .item-subtitle{color:var(--muted);font-size:12px;margin-top:2px;}
@@ -212,6 +237,26 @@
     .duel-row{flex-direction:column;}
     .vs{width:auto;padding:4px;}
   }
+
+  @media(max-width:480px){
+    .wrap{padding:28px 16px 64px;}
+    h1{font-size:23px !important;}
+    .vinyl{width:76px;height:76px;}
+    .lede{font-size:13px;}
+    .mode-tile{padding:20px 12px;}
+    .card{padding:22px 14px;min-height:150px;}
+    .card .cover{width:110px;height:110px;margin-bottom:12px;}
+    .card .item-title{font-size:19px;}
+    .btn{padding:10px 14px;font-size:12px;}
+    .foot-actions, .actions-row{flex-direction:column;align-items:stretch;}
+    .foot-actions .btn, .actions-row .btn{width:100%;}
+    .duel-row{gap:10px;}
+    .hint-row{display:none;}
+    .colmap-row{flex-direction:column;align-items:stretch;}
+    .colmap-header{min-width:0;}
+    .colmap-label{width:100%;}
+    .dropzone{padding:32px 16px;}
+  }
 </style>
 </head>
 <body>
@@ -219,7 +264,7 @@
 
   <!-- SCREEN -1: MODE SELECT -->
   <section class="screen active" id="screen-mode">
-    <div style="display:flex;align-items:center;gap:22px;">
+    <div class="screen-header">
       <svg class="vinyl" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
         <circle cx="60" cy="60" r="46" fill="none" stroke="#262019" stroke-width="1.5"/>
@@ -237,13 +282,13 @@
     <div class="mode-grid" id="modeGrid"></div>
   </section>
 
-  <!-- SCREEN 0: RESUME (shown if the chosen mode already has a saved state) -->
+  <!-- SCREEN 0: RESUME -->
   <section class="screen" id="screen-resume">
     <div class="topbar-mode">
       <span class="mode-pill" id="resumePill"></span>
       <button class="linkbtn" id="modeSwitchBtnResume">Kategorie wechseln</button>
     </div>
-    <div style="display:flex;align-items:center;gap:22px;">
+    <div class="screen-header">
       <svg class="vinyl" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
         <circle cx="60" cy="60" r="46" fill="none" stroke="#262019" stroke-width="1.5"/>
@@ -272,7 +317,7 @@
       <span class="mode-pill" id="uploadPill"></span>
       <button class="linkbtn" id="modeSwitchBtnUpload">Kategorie wechseln</button>
     </div>
-    <div style="display:flex;align-items:center;gap:22px;">
+    <div class="screen-header">
       <svg class="vinyl" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="58" fill="#0B0906" stroke="#37312A"/>
         <circle cx="60" cy="60" r="46" fill="none" stroke="#262019" stroke-width="1.5"/>
@@ -305,17 +350,35 @@
     </div>
   </section>
 
+  <!-- SCREEN 1b: COLUMN MAPPING -->
+  <section class="screen" id="screen-colmap">
+    <div class="topbar-mode">
+      <span class="mode-pill" id="colmapPill"></span>
+      <button class="linkbtn" id="modeSwitchBtnColmap">Kategorie wechseln</button>
+    </div>
+    <p class="eyebrow">Spalten zuordnen</p>
+    <h2 style="font-size:24px;">Was bedeutet welche Spalte?</h2>
+    <p class="lede">Erkannte Spalten sind automatisch vorbelegt. Unbekannte Spalten werden als Zusatzfeld angeboten — du entscheidest, ob und wo sie angezeigt werden.</p>
+    <div id="colmapRows" class="colmap-rows"></div>
+    <p id="colmapError" style="color:#E24B4A;font-size:12px;margin-top:12px;"></p>
+    <div class="foot-actions" style="justify-content:flex-start;">
+      <button class="btn primary" id="colmapConfirmBtn">Import starten</button>
+      <button class="btn" id="colmapCancelBtn">Abbrechen</button>
+    </div>
+  </section>
+
   <!-- SCREEN 2: DUEL -->
   <section class="screen" id="screen-duel">
     <div class="topbar">
       <span class="counter">
-        <span class="mode-pill" id="duelPill" style="margin-right:8px;"></span>
+        <span class="mode-pill" id="duelPill" style="margin-right:4px;"></span>
         Runde <b id="roundCount">0</b> &nbsp;·&nbsp; empfohlen ab <b id="roundTarget">0</b>
       </span>
-      <span>
+      <span class="topbar-actions">
         <button class="linkbtn" id="saveProgressBtnDuel">Stand speichern</button>
         &nbsp;·&nbsp;
         <button class="linkbtn" id="undoBtn">rückgängig</button>
+        <span class="undo-key-hint">(<span id="undoKeyLabel">Backspace</span> <button class="linkbtn" id="rebindUndoBtn">ändern</button>)</span>
         &nbsp;·&nbsp;
         <button class="linkbtn" id="modeSwitchBtnDuel">Kategorie</button>
       </span>
@@ -369,10 +432,10 @@ const MODES = {
       subtitle: ['artist','interpret','künstler','kuenstler','band'],
       meta: ['year','jahr','releaseyear','erscheinungsjahr'],
       cover: ['cover','coverurl','image','imageurl','cover_url','image_url','artwork'],
+      id: ['id','uid','key','albumid'],
     },
-    requireSubtitle: true,
-    subtitleLabel: 'artist" (oder "interpret")',
-    csvHeaders: ['Rang','Album','Artist','Jahr','Cover','Rating'],
+    subtitleHeaderName: 'Artist',
+    metaHeaderName: 'Jahr',
     formatExample: 'Album,Artist,Year,Cover<br>OK Computer,Radiohead,1997,https://.../cover.jpg',
   },
   songs: {
@@ -384,10 +447,10 @@ const MODES = {
       subtitle: ['artist','interpret','künstler','kuenstler','band'],
       meta: ['album','albumtitle'],
       cover: ['cover','coverurl','image','imageurl','cover_url','image_url','artwork'],
+      id: ['id','uid','key','songid'],
     },
-    requireSubtitle: true,
-    subtitleLabel: 'artist" (oder "interpret")',
-    csvHeaders: ['Rang','Song','Artist','Album','Cover','Rating'],
+    subtitleHeaderName: 'Artist',
+    metaHeaderName: 'Album',
     formatExample: 'Song,Artist,Album,Cover<br>Paranoid Android,Radiohead,OK Computer,https://.../cover.jpg',
   },
   artists: {
@@ -399,10 +462,10 @@ const MODES = {
       subtitle: [],
       meta: [],
       cover: ['cover','coverurl','image','imageurl','photo','picture'],
+      id: ['id','uid','key','artistid'],
     },
-    requireSubtitle: false,
-    subtitleLabel: 'artist',
-    csvHeaders: ['Rang','Artist','Cover','Rating'],
+    subtitleHeaderName: 'Subtitle',
+    metaHeaderName: 'Meta',
     formatExample: 'Artist,Cover<br>Radiohead,https://.../photo.jpg',
   },
 };
@@ -414,11 +477,17 @@ let lastOpponent = [];
 let current = null;
 let roundsPlayed = 0;
 let pendingProgress = null;
+let currentSchema = null;
+let pendingCSVParsed = null;
+let pendingMapping = null;
+let undoKey = 'Backspace';
+let listeningForKey = false;
 
 const screens = {
   mode: document.getElementById('screen-mode'),
   resume: document.getElementById('screen-resume'),
   upload: document.getElementById('screen-upload'),
+  colmap: document.getElementById('screen-colmap'),
   duel: document.getElementById('screen-duel'),
   ranking: document.getElementById('screen-ranking'),
 };
@@ -427,7 +496,7 @@ function showScreen(name){
   screens[name].classList.add('active');
 }
 
-/* ============ Local database (IndexedDB), one record per mode ============ */
+/* ============ Local database (IndexedDB) ============ */
 const DB_NAME = 'ranking-duell-db';
 const STORE = 'state';
 let dbPromise = null;
@@ -443,42 +512,57 @@ function dbOpen(){
   return dbPromise;
 }
 
-async function dbSaveState(){
-  if(!currentModeKey) return false;
-  try{
-    const db = await dbOpen();
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put({
-      items, roundsPlayed, lastOpponent, savedAt: new Date().toISOString(),
-    }, currentModeKey);
-    return new Promise(res=>{ tx.oncomplete = ()=>res(true); tx.onerror = ()=>res(false); });
-  }catch(e){ console.error('DB save failed', e); return false; }
-}
-
-async function dbLoadState(modeKey){
+async function dbGet(key){
   try{
     const db = await dbOpen();
     const tx = db.transaction(STORE, 'readonly');
-    const req = tx.objectStore(STORE).get(modeKey);
-    return new Promise(res=>{
-      req.onsuccess = ()=>res(req.result || null);
-      req.onerror = ()=>res(null);
-    });
+    const req = tx.objectStore(STORE).get(key);
+    return new Promise(res=>{ req.onsuccess = ()=>res(req.result || null); req.onerror = ()=>res(null); });
   }catch(e){ return null; }
 }
-
-async function dbClearState(modeKey){
+async function dbPut(key, value){
   try{
     const db = await dbOpen();
     const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).delete(modeKey);
+    tx.objectStore(STORE).put(value, key);
+    return new Promise(res=>{ tx.oncomplete = ()=>res(true); tx.onerror = ()=>res(false); });
+  }catch(e){ console.error('DB put failed', e); return false; }
+}
+async function dbDel(key){
+  try{
+    const db = await dbOpen();
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(key);
   }catch(e){}
+}
+
+async function dbSaveState(){
+  if(!currentModeKey) return false;
+  return dbPut(currentModeKey, {
+    items, roundsPlayed, lastOpponent, schema: currentSchema, savedAt: new Date().toISOString(),
+  });
+}
+async function dbLoadState(modeKey){ return dbGet(modeKey); }
+async function dbClearState(modeKey){ return dbDel(modeKey); }
+
+async function saveColumnMapping(rawHeaders){
+  if(!currentModeKey) return;
+  const signature = rawHeaders.map(h=>h.trim().toLowerCase()).join('|');
+  await dbPut('colmap:'+currentModeKey, {signature, mapping: pendingMapping});
+}
+async function loadColumnMapping(rawHeaders){
+  if(!currentModeKey) return null;
+  const saved = await dbGet('colmap:'+currentModeKey);
+  if(!saved) return null;
+  const signature = rawHeaders.map(h=>h.trim().toLowerCase()).join('|');
+  if(saved.signature !== signature) return null;
+  return saved.mapping;
 }
 
 /* One-time migration from the old single-mode app (DB "album-duell-db", key "current") */
 async function migrateOldData(){
   try{
-    const already = await dbLoadState('albums');
+    const already = await dbGet('albums');
     if(already && Array.isArray(already.items) && already.items.length>0) return;
     const oldDb = await new Promise((res)=>{
       const req = indexedDB.open('album-duell-db', 1);
@@ -497,24 +581,28 @@ async function migrateOldData(){
     oldDb.close();
     if(old && Array.isArray(old.albums) && old.albums.length>0){
       const migratedItems = old.albums.map(a=>({
-        title: a.album, subtitle: a.artist, meta: a.year||'', cover: a.cover||'',
+        id:'', title: a.album, subtitle: a.artist, meta: a.year||'', cover: a.cover||'', extra:{},
         rating: a.rating, comparisons: a.comparisons||0,
       }));
-      const db = await dbOpen();
-      const tx2 = db.transaction(STORE,'readwrite');
-      tx2.objectStore(STORE).put({
+      await dbPut('albums', {
         items: migratedItems,
         roundsPlayed: old.roundsPlayed||0,
         lastOpponent: old.lastOpponent||migratedItems.map(()=>null),
+        schema: {hasSubtitle:true, hasMeta:true, hasCover:true, hasId:false, extraFields:[]},
         savedAt: new Date().toISOString(),
-      }, 'albums');
-      await new Promise(res=>{ tx2.oncomplete=()=>res(); tx2.onerror=()=>res(); });
+      });
     }
   }catch(e){ console.error('Migration failed', e); }
 }
 
-/* ============ CSV parsing (generic per mode) ============ */
-function parseCSV(text, modeCfg){
+async function loadSettings(){
+  const s = await dbGet('__settings__');
+  if(s && s.undoKey) undoKey = s.undoKey;
+  updateUndoKeyLabel();
+}
+
+/* ============ CSV parsing helpers ============ */
+function csvSplit(text){
   const lines = text.split(/\r\n|\n|\r/).filter(l=>l.trim().length>0);
   if(lines.length<2) throw new Error('CSV braucht eine Kopfzeile plus mindestens eine Datenzeile.');
   const countOutsideQuotes = (line, ch)=>{
@@ -540,28 +628,37 @@ function parseCSV(text, modeCfg){
     out.push(cur);
     return out.map(s=>s.trim());
   };
-  const header = splitLine(lines[0]).map(h=>h.toLowerCase());
-  const findCol = (names)=>header.findIndex(h=>names.includes(h));
-  const titleIdx = findCol(modeCfg.columns.title);
-  const subtitleIdx = findCol(modeCfg.columns.subtitle);
-  const metaIdx = findCol(modeCfg.columns.meta);
-  const coverIdx = findCol(modeCfg.columns.cover);
-  if(titleIdx===-1) throw new Error('Spalte "'+modeCfg.titleWord.toLowerCase()+'" (oder ähnlich) nicht gefunden.');
-  const rows = [];
-  for(let i=1;i<lines.length;i++){
-    const cols = splitLine(lines[i]);
-    if(cols.every(c=>c==='')) continue;
-    rows.push({
-      title: cols[titleIdx] || '(ohne Titel)',
-      subtitle: subtitleIdx!==-1 ? (cols[subtitleIdx]||'') : '',
-      meta: metaIdx!==-1 ? (cols[metaIdx]||'') : '',
-      cover: coverIdx!==-1 ? (cols[coverIdx]||'') : '',
-      rating: 1000,
-      comparisons: 0,
-    });
-  }
-  if(rows.length<2) throw new Error('Mindestens 2 Einträge nötig.');
-  return rows;
+  return {lines, splitLine, delimiter};
+}
+
+function detectHeaders(text){
+  const {lines, splitLine} = csvSplit(text);
+  const rawHeaders = splitLine(lines[0]);
+  return {lines, splitLine, rawHeaders};
+}
+
+function autoMapColumns(rawHeaders, modeCfg){
+  const lower = rawHeaders.map(h=>h.trim().toLowerCase());
+  const findFirst = names => lower.findIndex(h=>names.includes(h));
+  const titleIdx = findFirst(modeCfg.columns.title);
+  const subtitleIdx = findFirst(modeCfg.columns.subtitle);
+  const metaIdx = findFirst(modeCfg.columns.meta);
+  const coverIdx = findFirst(modeCfg.columns.cover);
+  const idIdx = findFirst(modeCfg.columns.id);
+  const mapping = {};
+  rawHeaders.forEach((h, idx)=>{
+    if(idx===titleIdx) mapping[idx] = {slot:'title'};
+    else if(idx===subtitleIdx) mapping[idx] = {slot:'subtitle'};
+    else if(idx===metaIdx) mapping[idx] = {slot:'meta'};
+    else if(idx===coverIdx) mapping[idx] = {slot:'cover'};
+    else if(idx===idIdx) mapping[idx] = {slot:'id'};
+    else mapping[idx] = {slot:'extra', label:h, showOnCard:true, showInRanking:true};
+  });
+  return mapping;
+}
+
+function slugify(s){
+  return String(s).trim().toLowerCase().replace(/[^a-z0-9äöüß]+/g,'_').replace(/^_+|_+$/g,'') || 'feld';
 }
 
 function normKey(title, subtitle){
@@ -570,19 +667,24 @@ function normKey(title, subtitle){
 
 function mergeWithProgress(rows, progress){
   if(!progress || !Array.isArray(progress.items)) return {rows, matched:0, added:0};
-  const map = new Map();
-  progress.items.forEach(a=>map.set(normKey(a.title,a.subtitle), a));
+  const byId = new Map();
+  const byKey = new Map();
+  progress.items.forEach(a=>{
+    if(a.id) byId.set(String(a.id).trim(), a);
+    byKey.set(normKey(a.title, a.subtitle), a);
+  });
   let matched = 0;
   rows.forEach(r=>{
-    const found = map.get(normKey(r.title,r.subtitle));
+    let found = null;
+    if(r.id && byId.has(String(r.id).trim())) found = byId.get(String(r.id).trim());
+    if(!found) found = byKey.get(normKey(r.title, r.subtitle));
     if(found){
       r.rating = typeof found.rating==='number' ? found.rating : 1000;
       r.comparisons = typeof found.comparisons==='number' ? found.comparisons : 0;
       matched++;
     }
   });
-  const added = rows.length - matched;
-  return {rows, matched, added};
+  return {rows, matched, added: rows.length-matched};
 }
 
 /* ============ Mode select screen ============ */
@@ -597,7 +699,7 @@ function buildModeGrid(){
     grid.appendChild(tile);
   });
   Object.values(MODES).forEach(async mode=>{
-    const saved = await dbLoadState(mode.key);
+    const saved = await dbGet(mode.key);
     const el = document.getElementById('status-'+mode.key);
     if(saved && Array.isArray(saved.items) && saved.items.length>0){
       el.textContent = saved.items.length+' '+mode.pluralWord+' · '+(saved.roundsPlayed||0)+' Runden';
@@ -611,28 +713,29 @@ async function enterMode(modeKey){
   currentModeKey = modeKey;
   const mode = MODES[modeKey];
   pendingProgress = null;
-  ['resumePill','uploadPill','duelPill'].forEach(id=>{
+  ['resumePill','uploadPill','duelPill','colmapPill'].forEach(id=>{
     document.getElementById(id).textContent = mode.label;
   });
   document.getElementById('rankingPill').textContent = mode.label+' · Zwischenstand';
   document.getElementById('uploadEyebrow').textContent = mode.eyebrow;
   document.getElementById('uploadLede').textContent = mode.lede;
   document.getElementById('formatHint').innerHTML =
-    'Erwartete Spalten (Reihenfolge egal, Groß-/Kleinschreibung egal):<br>'+
+    'Empfohlene Spaltennamen (werden automatisch erkannt, danach passt du im nächsten Schritt alles an):<br>'+
     describeColumns(mode)+'<br>Beispiel: <code>'+mode.formatExample+'</code>';
   document.getElementById('resumeAddBtn').textContent = 'Neue '+mode.pluralWord+' per CSV hinzufügen';
 
-  const saved = await dbLoadState(modeKey);
+  const saved = await dbGet(modeKey);
   if(saved && Array.isArray(saved.items) && saved.items.length>0){
     items = saved.items;
     roundsPlayed = saved.roundsPlayed || 0;
     lastOpponent = saved.lastOpponent || items.map(()=>null);
+    currentSchema = saved.schema || {hasSubtitle:true, hasMeta:true, hasCover:true, hasId:false, extraFields:[]};
     history = [];
     document.getElementById('resumeSummary').textContent =
       items.length+' '+mode.pluralWord+' gespeichert · '+roundsPlayed+' Runden bisher gespielt.';
     showScreen('resume');
   }else{
-    items = []; history = []; lastOpponent = []; roundsPlayed = 0;
+    items = []; history = []; lastOpponent = []; roundsPlayed = 0; currentSchema = null;
     showScreen('upload');
   }
 }
@@ -640,9 +743,11 @@ async function enterMode(modeKey){
 function describeColumns(mode){
   const parts = [];
   parts.push('<code>'+mode.columns.title[0]+'</code>');
-  if(mode.columns.subtitle.length) parts.push('optional <code>'+mode.columns.subtitle[0]+'</code> (oder <code>interpret</code>)');
-  if(mode.columns.meta.length) parts.push('optional <code>'+mode.columns.meta[0]+'</code>');
-  parts.push('optional <code>cover</code> (Bild-URL)');
+  if(mode.columns.subtitle.length) parts.push('<code>'+mode.columns.subtitle[0]+'</code> ('+mode.subtitleHeaderName+')');
+  if(mode.columns.meta.length) parts.push('<code>'+mode.columns.meta[0]+'</code>');
+  parts.push('<code>cover</code> (Bild-URL)');
+  parts.push('<code>id</code> (optional — zum Wiedererkennen bei erneutem Import)');
+  parts.push('beliebige weitere Spalten (werden als Zusatzfeld angeboten)');
   return parts.join(', ');
 }
 
@@ -686,30 +791,156 @@ function setupUpload(){
   input.addEventListener('change', e=>{
     if(e.target.files[0]) handleFile(e.target.files[0]);
   });
-  function handleFile(file){
+  async function handleFile(file){
     err.textContent='';
     const reader = new FileReader();
-    reader.onload = ev=>{
+    reader.onload = async ev=>{
       try{
+        const {lines, splitLine, rawHeaders} = detectHeaders(ev.target.result);
+        pendingCSVParsed = {lines, splitLine, rawHeaders};
         const mode = MODES[currentModeKey];
-        const rows = parseCSV(ev.target.result, mode);
-        const {matched, added} = mergeWithProgress(rows, pendingProgress);
-        items = rows;
-        history = [];
-        lastOpponent = items.map(()=>null);
-        roundsPlayed = 0;
-        if(pendingProgress){
-          err.style.color = 'var(--muted)';
-          err.textContent = matched+' Einträge mit altem Stand übernommen, '+added+' neu.';
-        }
-        dbSaveState();
-        startDuels();
+        const saved = await loadColumnMapping(rawHeaders);
+        pendingMapping = saved || autoMapColumns(rawHeaders, mode);
+        document.getElementById('colmapError').textContent = '';
+        renderColumnMappingUI();
+        showScreen('colmap');
       }catch(e){
         err.style.color = '#E24B4A';
         err.textContent = e.message;
       }
     };
     reader.readAsText(file, 'UTF-8');
+  }
+}
+
+/* ============ Column mapping screen ============ */
+function renderColumnMappingUI(){
+  const container = document.getElementById('colmapRows');
+  container.innerHTML = '';
+  pendingCSVParsed.rawHeaders.forEach((h, idx)=>{
+    const m = pendingMapping[idx];
+    const row = document.createElement('div');
+    row.className = 'colmap-row';
+    row.innerHTML =
+      '<div class="colmap-header">'+escapeHTML(h)+'</div>'+
+      '<select data-idx="'+idx+'" class="colmap-select">'+
+        '<option value="title">Titel</option>'+
+        '<option value="subtitle">Untertitel</option>'+
+        '<option value="meta">Meta</option>'+
+        '<option value="cover">Cover (Bild-URL)</option>'+
+        '<option value="id">ID</option>'+
+        '<option value="extra">Zusatzfeld</option>'+
+        '<option value="ignore">Ignorieren</option>'+
+      '</select>'+
+      '<span class="colmap-extra-opts" style="display:'+(m.slot==='extra'?'inline-flex':'none')+'">'+
+        '<input type="text" class="colmap-label" data-idx="'+idx+'" value="'+escapeAttr(m.label||h)+'" placeholder="Bezeichnung">'+
+        '<label><input type="checkbox" class="colmap-showcard" data-idx="'+idx+'" '+(m.showOnCard!==false?'checked':'')+'> Karte</label>'+
+        '<label><input type="checkbox" class="colmap-showrank" data-idx="'+idx+'" '+(m.showInRanking!==false?'checked':'')+'> Ranking</label>'+
+      '</span>';
+    container.appendChild(row);
+  });
+  pendingCSVParsed.rawHeaders.forEach((h, idx)=>{
+    container.querySelector('select[data-idx="'+idx+'"]').value = pendingMapping[idx].slot;
+  });
+  container.querySelectorAll('.colmap-select').forEach(sel=>{
+    sel.addEventListener('change', e=>{
+      const idx = +e.target.dataset.idx;
+      const existingLabel = pendingMapping[idx].label;
+      pendingMapping[idx] = {slot: e.target.value, label: existingLabel, showOnCard:true, showInRanking:true};
+      renderColumnMappingUI();
+    });
+  });
+  container.querySelectorAll('.colmap-label').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      pendingMapping[+e.target.dataset.idx].label = e.target.value;
+    });
+  });
+  container.querySelectorAll('.colmap-showcard').forEach(cb=>{
+    cb.addEventListener('change', e=>{
+      pendingMapping[+e.target.dataset.idx].showOnCard = e.target.checked;
+    });
+  });
+  container.querySelectorAll('.colmap-showrank').forEach(cb=>{
+    cb.addEventListener('change', e=>{
+      pendingMapping[+e.target.dataset.idx].showInRanking = e.target.checked;
+    });
+  });
+}
+function escapeAttr(s){ return escapeHTML(s).replace(/'/g,'&#39;'); }
+
+function confirmMapping(){
+  const slots = Object.values(pendingMapping).map(m=>m.slot);
+  const countTitle = slots.filter(s=>s==='title').length;
+  if(countTitle!==1){
+    document.getElementById('colmapError').textContent = 'Bitte genau eine Spalte als "Titel" markieren.';
+    return;
+  }
+
+  const idxBySlot = {};
+  const extraDefs = [];
+  Object.entries(pendingMapping).forEach(([idxStr, m])=>{
+    const idx = +idxStr;
+    if(m.slot==='extra'){
+      extraDefs.push({idx, label: m.label || pendingCSVParsed.rawHeaders[idx], showOnCard: m.showOnCard!==false, showInRanking: m.showInRanking!==false});
+    }else if(m.slot!=='ignore'){
+      if(idxBySlot[m.slot]===undefined) idxBySlot[m.slot] = idx;
+    }
+  });
+  const usedKeys = new Set();
+  extraDefs.forEach(d=>{
+    let k = slugify(d.label), base=k, n=2;
+    while(usedKeys.has(k)){ k = base+'_'+n; n++; }
+    usedKeys.add(k);
+    d.key = k;
+  });
+
+  const {lines, splitLine} = pendingCSVParsed;
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const cols = splitLine(lines[i]);
+    if(cols.every(c=>c==='')) continue;
+    const extra = {};
+    extraDefs.forEach(d=>{ extra[d.key] = cols[d.idx] || ''; });
+    rows.push({
+      id: idxBySlot.id!==undefined ? (cols[idxBySlot.id]||'') : '',
+      title: idxBySlot.title!==undefined ? (cols[idxBySlot.title]||'(ohne Titel)') : '(ohne Titel)',
+      subtitle: idxBySlot.subtitle!==undefined ? (cols[idxBySlot.subtitle]||'') : '',
+      meta: idxBySlot.meta!==undefined ? (cols[idxBySlot.meta]||'') : '',
+      cover: idxBySlot.cover!==undefined ? (cols[idxBySlot.cover]||'') : '',
+      extra,
+      rating: 1000,
+      comparisons: 0,
+    });
+  }
+  if(rows.length<2){
+    document.getElementById('colmapError').textContent = 'Mindestens 2 Einträge nötig.';
+    return;
+  }
+
+  currentSchema = {
+    hasSubtitle: idxBySlot.subtitle!==undefined,
+    hasMeta: idxBySlot.meta!==undefined,
+    hasCover: idxBySlot.cover!==undefined,
+    hasId: idxBySlot.id!==undefined,
+    extraFields: extraDefs.map(d=>({key:d.key, label:d.label, showOnCard:d.showOnCard, showInRanking:d.showInRanking})),
+  };
+
+  const {matched, added} = mergeWithProgress(rows, pendingProgress);
+  items = rows;
+  history = [];
+  lastOpponent = items.map(()=>null);
+  roundsPlayed = 0;
+
+  saveColumnMapping(pendingCSVParsed.rawHeaders);
+  dbSaveState();
+
+  if(pendingProgress && matched>0){
+    const msgEl = document.getElementById('colmapError');
+    msgEl.style.color = 'var(--muted)';
+    msgEl.textContent = matched+' Einträge per ID/Name mit altem Stand abgeglichen, '+added+' neu.';
+    setTimeout(startDuels, 900);
+  }else{
+    startDuels();
   }
 }
 
@@ -729,12 +960,27 @@ function pickPair(){
   return Math.random()<0.5 ? [i,j] : [j,i];
 }
 
+function renderExtrasHTML(item, placementKey){
+  if(!currentSchema || !Array.isArray(currentSchema.extraFields) || !currentSchema.extraFields.length) return '';
+  const pills = currentSchema.extraFields
+    .filter(f=>f[placementKey])
+    .map(f=>{
+      const val = item.extra ? item.extra[f.key] : '';
+      if(!val) return '';
+      return '<span class="tag">'+escapeHTML(f.label)+': '+escapeHTML(val)+'</span>';
+    })
+    .filter(Boolean)
+    .join('');
+  return pills ? '<div class="item-extras">'+pills+'</div>' : '';
+}
+
 function renderCard(el, item){
   el.innerHTML =
     (item.cover ? '<img class="cover" src="'+escapeHTML(item.cover)+'" alt="" onerror="this.remove()">' : '') +
     '<div class="item-title">'+escapeHTML(item.title)+'</div>'+
     (item.subtitle ? '<div class="item-subtitle">'+escapeHTML(item.subtitle)+'</div>' : '')+
-    (item.meta ? '<div class="item-meta">'+escapeHTML(item.meta)+'</div>' : '');
+    (item.meta ? '<div class="item-meta">'+escapeHTML(item.meta)+'</div>' : '')+
+    renderExtrasHTML(item, 'showOnCard');
 }
 function escapeHTML(s){
   return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -812,7 +1058,9 @@ function renderRanking(){
       '<div class="rank-meta">'+
       (a.cover ? '<img class="rank-cover" src="'+escapeHTML(a.cover)+'" alt="" onerror="this.remove()">' : '')+
       '<div><div class="item-title">'+escapeHTML(a.title)+'</div>'+
-      '<div class="item-subtitle">'+escapeHTML(a.subtitle)+(a.meta?' · '+escapeHTML(a.meta):'')+'</div></div></div>'+
+      '<div class="item-subtitle">'+escapeHTML(a.subtitle)+(a.meta?' · '+escapeHTML(a.meta):'')+'</div>'+
+      renderExtrasHTML(a, 'showInRanking')+
+      '</div></div>'+
       '<div class="rank-score">'+Math.round(a.rating)+'</div>'+
     '</div>'
   )).join('');
@@ -820,15 +1068,25 @@ function renderRanking(){
 
 function exportCSV(){
   const mode = MODES[currentModeKey];
-  const hasSubtitle = mode.columns.subtitle.length>0;
-  const hasMeta = mode.columns.meta.length>0;
+  const schema = currentSchema || {hasSubtitle:mode.columns.subtitle.length>0, hasMeta:mode.columns.meta.length>0, hasCover:true, hasId:false, extraFields:[]};
+  const headers = ['Rang'];
+  if(schema.hasId) headers.push('ID');
+  headers.push(mode.titleWord);
+  if(schema.hasSubtitle) headers.push(mode.subtitleHeaderName);
+  if(schema.hasMeta) headers.push(mode.metaHeaderName);
+  schema.extraFields.forEach(f=>headers.push(f.label));
+  headers.push('Cover','Rating');
+
   const sorted = [...items].sort((a,b)=>b.rating-a.rating);
-  const rows = [mode.csvHeaders];
+  const rows = [headers];
   sorted.forEach((a,idx)=>{
-    const row = [idx+1, a.title];
-    if(hasSubtitle) row.push(a.subtitle);
-    if(hasMeta) row.push(a.meta);
-    row.push(a.cover, Math.round(a.rating));
+    const row = [idx+1];
+    if(schema.hasId) row.push(a.id||'');
+    row.push(a.title);
+    if(schema.hasSubtitle) row.push(a.subtitle||'');
+    if(schema.hasMeta) row.push(a.meta||'');
+    schema.extraFields.forEach(f=>row.push(a.extra ? (a.extra[f.key]||'') : ''));
+    row.push(a.cover||'', Math.round(a.rating));
     rows.push(row);
   });
   const csv = rows.map(r=>r.map(v=>{
@@ -847,8 +1105,9 @@ function saveProgress(){
   const data = {
     mode: currentModeKey,
     exportedAt: new Date().toISOString(),
+    schema: currentSchema,
     items: items.map(a=>({
-      title: a.title, subtitle: a.subtitle, meta: a.meta, cover: a.cover,
+      id: a.id||'', title: a.title, subtitle: a.subtitle, meta: a.meta, cover: a.cover, extra: a.extra||{},
       rating: Math.round(a.rating*1000)/1000, comparisons: a.comparisons,
     })),
   };
@@ -865,19 +1124,35 @@ function startDuels(){
   nextDuel();
 }
 
+/* ============ Undo key binding ============ */
+function keyDisplayName(key){
+  const map = {' ':'Leertaste', 'ArrowLeft':'←', 'ArrowRight':'→', 'ArrowUp':'↑', 'ArrowDown':'↓', 'Enter':'Enter', 'Escape':'Esc'};
+  return map[key] || (key.length===1 ? key.toUpperCase() : key);
+}
+function updateUndoKeyLabel(){
+  document.getElementById('undoKeyLabel').textContent = keyDisplayName(undoKey);
+}
+
 /* ============ Wiring ============ */
 document.getElementById('cardLeft').addEventListener('click', ()=>choose('left'));
 document.getElementById('cardRight').addEventListener('click', ()=>choose('right'));
 document.getElementById('undoBtn').addEventListener('click', undo);
+document.getElementById('rebindUndoBtn').addEventListener('click', ()=>{
+  listeningForKey = true;
+  document.getElementById('undoKeyLabel').textContent = '… Taste drücken';
+});
 document.getElementById('showRankingBtn').addEventListener('click', ()=>{ renderRanking(); showScreen('ranking'); });
 document.getElementById('continueBtn').addEventListener('click', ()=>{ showScreen('duel'); nextDuel(); });
 document.getElementById('exportBtn').addEventListener('click', exportCSV);
 document.getElementById('saveProgressBtnDuel').addEventListener('click', saveProgress);
 document.getElementById('saveProgressBtnRank').addEventListener('click', saveProgress);
 document.getElementById('resetBtn').addEventListener('click', fullReset);
+document.getElementById('colmapConfirmBtn').addEventListener('click', confirmMapping);
+document.getElementById('colmapCancelBtn').addEventListener('click', ()=>{ showScreen('upload'); });
 
 document.getElementById('modeSwitchBtnResume').addEventListener('click', backToModeSelect);
 document.getElementById('modeSwitchBtnUpload').addEventListener('click', backToModeSelect);
+document.getElementById('modeSwitchBtnColmap').addEventListener('click', backToModeSelect);
 document.getElementById('modeSwitchBtnDuel').addEventListener('click', backToModeSelect);
 document.getElementById('modeSwitchBtnRanking').addEventListener('click', backToModeSelect);
 
@@ -891,7 +1166,7 @@ document.getElementById('resumeResetBtn').addEventListener('click', fullReset);
 
 function fullReset(){
   dbClearState(currentModeKey);
-  items=[]; history=[]; lastOpponent=[]; roundsPlayed=0; pendingProgress=null;
+  items=[]; history=[]; lastOpponent=[]; roundsPlayed=0; pendingProgress=null; currentSchema=null;
   document.getElementById('fileInput').value='';
   document.getElementById('progressInput').value='';
   document.getElementById('progressLabelText').textContent='+ Backup-Datei einbinden (optional, .json — normalerweise nicht nötig)';
@@ -900,14 +1175,24 @@ function fullReset(){
 }
 
 document.addEventListener('keydown', e=>{
+  if(listeningForKey){
+    e.preventDefault();
+    undoKey = e.key;
+    listeningForKey = false;
+    updateUndoKeyLabel();
+    dbPut('__settings__', {undoKey});
+    return;
+  }
   if(!screens.duel.classList.contains('active')) return;
-  if(e.key==='ArrowLeft') choose('left');
-  if(e.key==='ArrowRight') choose('right');
+  if(e.key==='ArrowLeft'){ choose('left'); }
+  else if(e.key==='ArrowRight'){ choose('right'); }
+  else if(e.key===undoKey){ e.preventDefault(); undo(); }
 });
 
 setupUpload();
 (async function init(){
   await migrateOldData();
+  await loadSettings();
   buildModeGrid();
   showScreen('mode');
 })();
